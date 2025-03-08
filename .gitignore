@@ -1,0 +1,28 @@
+env/
+venv/
+**pycache**/
+
+# Archivos temporales
+*.tmp
+*.bak
+.DS_Store
+
+# Archivos de sesión de Streamlit
+.streamlit/secrets.toml
+
+# Archivos temporales generados por tu app
+temp/
+*.pdf
+
+# Archivos de caché
+.cache/
+.pytest_cache/
+
+# Distribución / empaquetado
+dist/
+build/
+*.egg-info/
+
+# Archivos específicos de IDE
+.idea/
+.vscode/
