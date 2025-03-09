@@ -6,4 +6,4 @@ Pillow==10.0.0
 fpdf==1.7.2
 mplsoccer==1.1.12
 scipy==1.11.3
-soccerdata==0.5.2
+soccerdata==1.8.0
