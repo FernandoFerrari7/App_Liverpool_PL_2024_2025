@@ -1,9 +1,39 @@
 import matplotlib.pyplot as plt
 from mplsoccer import VerticalPitch
+import functools
 
-def generar_campograma_tiros(df_jugador, figsize=(9, 3)):  # Ajusta el alto aquí
+# Diccionario para caché de campogramas de tiros
+TIROS_CACHE = {}
+
+# Decorador para caché
+def cache_campograma_tiros(func):
+    @functools.wraps(func)
+    def wrapper(df_jugador, figsize=(9, 3), *args, **kwargs):
+        # Crear una clave única para el caché basada en el jugador y tamaño de figura
+        player_name = df_jugador['player'].iloc[0] if 'player' in df_jugador.columns and not df_jugador.empty else "unknown"
+        cache_key = f"{player_name}_tiros_{figsize[0]}x{figsize[1]}"
+        
+        # Si ya existe en caché, devolver el gráfico almacenado
+        if cache_key in TIROS_CACHE:
+            return TIROS_CACHE[cache_key]
+        
+        # Si no está en caché, generar el gráfico
+        try:
+            fig = func(df_jugador, figsize, *args, **kwargs)
+            # Almacenar en caché solo si se genera correctamente
+            TIROS_CACHE[cache_key] = fig
+            return fig
+        except ValueError as e:
+            # Si no hay tiros, registrar el error pero no cachear
+            print(f"No se pudo generar el campograma de tiros: {e}")
+            return None
+    return wrapper
+
+@cache_campograma_tiros
+def generar_campograma_tiros(df_jugador, figsize=(9, 3)):
     """
     Genera un campograma de tiros con altura reducida para un jugador específico.
+    Utiliza caché para mejorar el rendimiento en entornos con recursos limitados.
 
     Parámetros:
     - df_jugador (DataFrame): DataFrame filtrado con los eventos del jugador. 
@@ -57,3 +87,8 @@ def generar_campograma_tiros(df_jugador, figsize=(9, 3)):  # Ajusta el alto aqu�
     )
 
     return fig
+
+# Función para limpiar el caché si es necesario
+def clear_tiros_cache():
+    global TIROS_CACHE
+    TIROS_CACHE = {}

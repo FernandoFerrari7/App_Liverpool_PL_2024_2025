@@ -1,6 +1,32 @@
 import matplotlib.pyplot as plt
 from mplsoccer import PyPizza
+import functools
 
+# Diccionario para caché de gráficos radar
+RADAR_CACHE = {}
+
+# Decorador para caché
+def cache_radar(func):
+    @functools.wraps(func)
+    def wrapper(data_player, params, min_range, max_range, *args, **kwargs):
+        # Crear una clave única para el caché basada en el jugador y los parámetros
+        player_name = data_player['player'].iloc[0] if not data_player.empty else "unknown"
+        cache_key = f"{player_name}_{'-'.join(params)}"
+        
+        # Si ya existe en caché, devolver el gráfico almacenado
+        if cache_key in RADAR_CACHE:
+            return RADAR_CACHE[cache_key]
+        
+        # Si no está en caché, generar el gráfico
+        fig = func(data_player, params, min_range, max_range, *args, **kwargs)
+        
+        # Almacenar en caché
+        RADAR_CACHE[cache_key] = fig
+        
+        return fig
+    return wrapper
+
+@cache_radar
 def generate_radar_chart(
     data_player, params, min_range, max_range, 
     player_color="#1A78CF", 
@@ -10,6 +36,7 @@ def generate_radar_chart(
 ):
     """
     Genera un gráfico de radar para un jugador.
+    Utiliza caché para mejorar el rendimiento en entornos con recursos limitados.
     """
     def calculate_metrics(data):
         metrics = {
@@ -40,8 +67,8 @@ def generate_radar_chart(
     metrics_player = calculate_metrics(data_player)
     values_player = [metrics_player[param] for param in params]
 
-    # Ajuste del tamaño para evitar desproporción
-    fig_size = (7, 7)  
+    # Reducir el tamaño y DPI para optimizar el rendimiento
+    fig_size = (6, 6)  
     baker = PyPizza(
         params=params,
         min_range=min_range,
@@ -59,8 +86,16 @@ def generate_radar_chart(
         figsize=fig_size,
         kwargs_slices=dict(facecolor=player_color, edgecolor="#000000", zorder=1, linewidth=1),
         kwargs_params=dict(color=text_color, fontsize=13, zorder=5, va="center"),
-        # Agregar valores visibles en negrita y más grandes
         kwargs_values=dict(color=text_color, fontsize=14, zorder=3, fontweight='bold')
     )
+    
+    # Configurar el fondo y optimizar para rendimiento
     fig.patch.set_facecolor(figure_background_color)
+    plt.tight_layout()
+    
     return fig
+
+# Función para limpiar el caché si es necesario
+def clear_radar_cache():
+    global RADAR_CACHE
+    RADAR_CACHE = {}

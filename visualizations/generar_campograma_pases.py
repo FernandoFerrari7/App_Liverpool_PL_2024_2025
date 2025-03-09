@@ -1,9 +1,36 @@
 import matplotlib.pyplot as plt
 from mplsoccer import Pitch
+import functools
 
+# Diccionario para caché de campogramas de pases
+PASES_CACHE = {}
+
+# Decorador para caché
+def cache_campograma_pases(func):
+    @functools.wraps(func)
+    def wrapper(df_jugador, figsize=(9, 7), *args, **kwargs):
+        # Crear una clave única para el caché basada en el jugador y tamaño de figura
+        player_name = df_jugador['player'].iloc[0] if 'player' in df_jugador.columns and not df_jugador.empty else "unknown"
+        cache_key = f"{player_name}_pases_{figsize[0]}x{figsize[1]}"
+        
+        # Si ya existe en caché, devolver el gráfico almacenado
+        if cache_key in PASES_CACHE:
+            return PASES_CACHE[cache_key]
+        
+        # Si no está en caché, generar el gráfico
+        fig = func(df_jugador, figsize, *args, **kwargs)
+        
+        # Almacenar en caché
+        PASES_CACHE[cache_key] = fig
+        
+        return fig
+    return wrapper
+
+@cache_campograma_pases
 def generar_campograma_pases(df_jugador, figsize=(9, 7)):
     """
     Genera un campograma de pases para un jugador específico.
+    Utiliza caché para mejorar el rendimiento en entornos con recursos limitados.
 
     Parámetros:
     - df_jugador (DataFrame): DataFrame filtrado con los eventos del jugador, debe contener:
@@ -39,3 +66,8 @@ def generar_campograma_pases(df_jugador, figsize=(9, 7)):
     ax.legend(facecolor='black', handlelength=5, edgecolor='None', fontsize=15, loc='upper left', labelcolor='white')
 
     return fig
+
+# Función para limpiar el caché si es necesario
+def clear_pases_cache():
+    global PASES_CACHE
+    PASES_CACHE = {}
