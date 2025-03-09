@@ -13,5 +13,15 @@ Una aplicación web desarrollada con Streamlit para analizar el rendimiento del 
 
 1. Clona este repositorio:
 ```bash
-git clone https://github.com/tu-usuario/liverpool-analysis.git
-cd liverpool-analysis
+git clone https://github.com/FernandoFerrari7/App_Liverpool_PL_2024_2025
+```
+
+2. Navega al directorio del proyecto:
+```bash
+cd App_Liverpool_PL_2024_2025
+```
+
+3. Instala las dependencias requeridas:
+```bash
+pip install -r requirements.txt
+```
